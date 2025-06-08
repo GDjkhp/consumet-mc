@@ -133,7 +133,9 @@ class Kisskh(Provider):
             )
         return None
 
-    def _scrape_video_servers(self, episode_id: str) -> list[VideoServer]:
+    def _scrape_video_servers(
+        self, episode_id: str, media_id: Optional[str] = None
+    ) -> list[VideoServer]:
         episode_url = f"{self.base_url}/DramaList/Episode/{episode_id}.png"
         subs_url = f"{self.base_url}/Sub/{episode_id}"
 
@@ -146,7 +148,7 @@ class Kisskh(Provider):
         ]
 
     def _scrape_episodes(
-        self, media_id: str, season: Optional[int] = 1
+        self, media_id: str, season_id: Optional[int] = None
     ) -> List[Episode]:
         try:
             extra_metadata_url = f"{self.base_url}/DramaList/Drama/{media_id}"

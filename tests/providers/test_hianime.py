@@ -79,7 +79,7 @@ def test_search_tv(hianime: HiAnime):
 
 def test_scrape_episodes(hianime: HiAnime, naruto_metadata: Metadata):
     episodes: Dict = hianime.scrape_episodes(naruto_metadata)
-    assert episodes[1]
+    assert episodes.items()
 
 
 def test_scrape_media(hianime: HiAnime, naruto_metadata):

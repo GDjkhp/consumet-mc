@@ -56,7 +56,7 @@ def test_search_tv_series(kisskh: Kisskh):
 
 def test_scrape_episodes(kisskh: Kisskh, vincenzo_metadata: Metadata):
     episodes: Dict = kisskh.scrape_episodes(vincenzo_metadata)
-    assert episodes[1]
+    assert episodes.items()
 
 
 def test_scrape_media(kisskh: Kisskh, vincenzo_metadata: Metadata):

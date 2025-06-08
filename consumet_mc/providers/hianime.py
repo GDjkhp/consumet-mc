@@ -250,7 +250,9 @@ class HiAnime(Provider):
                 return Single(video.url, metadata.title, subtitles=subtitles)
         return None
 
-    def _scrape_video_servers(self, episode_id: str) -> list[VideoServer]:
+    def _scrape_video_servers(
+        self, episode_id: str, media_id: Optional[str] = None
+    ) -> list[VideoServer]:
         try:
             url = f"{self.base_url}/ajax/v2/episode/servers?episodeId={episode_id}"
             response = self.http_client.request("GET", url)
@@ -308,7 +310,7 @@ class HiAnime(Provider):
             raise e
 
     def _scrape_episodes(
-        self, media_id: str, season: Optional[int] = 1
+        self, media_id: str, season_id: Optional[int] = None
     ) -> List[Episode]:
         try:
             url = f"{self.base_url}/ajax/v2/episode/list/{media_id.split('-')[-1]}"
