@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from consumet_mc.extractors.video_extractor import Video
 from consumet_mc.models.episode import Episode
 from consumet_mc.models.paged_result import PagedResult
 from consumet_mc.models.video_server import VideoServer
@@ -37,18 +36,12 @@ class Provider(Scraper, ABC):
         """
         search for media
         """
+        ...
 
     @abstractmethod
     def _scrape_video_servers(self, episode_id: str) -> List[VideoServer]:
         """
         Where your scraping for episode video servers should be
-        """
-        ...
-
-    # @abstractmethod
-    def _scrape_videos(self, server: VideoServer) -> List[Video]:
-        """
-        Where your scraping for videos should be
         """
         ...
 

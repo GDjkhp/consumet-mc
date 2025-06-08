@@ -3,7 +3,7 @@ from __future__ import annotations
 import base64
 from typing import TYPE_CHECKING
 
-from consumet_mc.extractors.utils.aes_cipher import AESCipher
+from consumet_mc.utils import crypto
 
 if TYPE_CHECKING:
     from mov_cli.http_client import HTTPClient
@@ -22,7 +22,6 @@ class KK(VideoExtractor):
         self._appName = "kisskh"
         self._aes_key = "4f6bdaa39E2F8CB07f5e722d9EDEF314"
         self._aes_iv = "01504af356e619cf2e42bba68C3F70F9"
-        self._cipher = AESCipher(self._aes_key, self._aes_iv, True)
 
     @property
     def server_name(self) -> StreamingServer:
@@ -72,17 +71,29 @@ class KK(VideoExtractor):
         kk_subs_key.insert(1, str(kk_subs_key_word))
 
         encrypted_subs_key = (
-            base64.b64decode(self._cipher.encrypt("|".join(kk_subs_key))).hex().upper()
+            base64.b64decode(
+                crypto.aes_encrypt(
+                    "|".join(kk_subs_key), self._aes_key, self._aes_iv, True
+                )
+            )
+            .hex()
+            .upper()
         )
         encrypted_vid_key = (
-            base64.b64decode(self._cipher.encrypt("|".join(kk_vid_key))).hex().upper()
+            base64.b64decode(
+                crypto.aes_encrypt(
+                    "|".join(kk_vid_key), self._aes_key, self._aes_iv, True
+                )
+            )
+            .hex()
+            .upper()
         )
 
         vid_data_url = f"{url}?kkey={encrypted_vid_key}"
         subs_data_url = f"{kwargs['subs_url']}?kkey={encrypted_subs_key}"
 
-        vid_data_response = self.http_client.get(vid_data_url)
-        subs_data_reponse = self.http_client.get(subs_data_url)
+        vid_data_response = self.http_client.request("GET", vid_data_url)
+        subs_data_reponse = self.http_client.request("GET", subs_data_url)
 
         vid_data_response.raise_for_status()
 

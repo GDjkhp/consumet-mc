@@ -6,7 +6,8 @@ readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.8"
 license = { file = "LICENSE" }
 keywords = [
-    "mov-cli plugin"
+    "mov-cli plugin",
+    "consumet"
 ]
 classifiers = [
 	'Operating System :: Microsoft :: Windows :: Windows 11',
@@ -24,7 +25,10 @@ dependencies = [
     "pycryptodome",
     "importlib-metadata; python_version<'3.8'",
 
-    "mov-cli>=4.0.3"
+    "mov-cli>=4.0.3",
+
+    "wasmer>=1.1.0",
+    "wasmer_compiler_cranelift"
 ]
 
 dynamic = ["version"]

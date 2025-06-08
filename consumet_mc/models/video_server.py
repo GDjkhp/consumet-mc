@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
     from typing import Any, Dict
@@ -11,4 +11,5 @@ if TYPE_CHECKING:
 class VideoServer:
     name: str
     embed: str
-    extraData: Dict[str, Any] = field(default_factory=dict)
+    alternative_name: Optional[str] = field(default=None)
+    extra_data: Dict[str, Any] = field(default_factory=dict)

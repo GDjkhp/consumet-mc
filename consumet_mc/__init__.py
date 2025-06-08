@@ -4,17 +4,12 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from mov_cli.plugins import PluginHookData
 
-from .providers import Kisskh
+from .providers import Kisskh, HiAnime
 
 plugin: PluginHookData = {
     "version": 1,
     "package_name": "consumet-mc",  # Required for the plugin update checker.
-    "scrapers": {
-        "DEFAULT": Kisskh,
-        "ANDROID.DEFAULT": Kisskh,
-        "IOS.DEFAULT": Kisskh,
-        "kisskh": Kisskh,
-    },
+    "scrapers": {"hianime": HiAnime, "kisskh": Kisskh, "DEFAULT": HiAnime},
 }
 
 __version__ = "1.0.0"

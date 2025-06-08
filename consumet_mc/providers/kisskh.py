@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from re import error
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
 from consumet_mc.extractors.kk import KK
 from consumet_mc.models.episode import Episode
@@ -36,20 +36,26 @@ class Kisskh(Provider):
 
     def search(self, query: str, limit: Optional[int] = None) -> List[Metadata]:
         limit = 1 if limit is None else limit
-        if not query.startswith("?:"):
-            return self._search(query, 1).results
-        elif query[2:].strip().lower() == "popular":
-            return self._scrape_popular(1).results
-        elif query[2:].strip().lower() == "ongoing":
-            return self._scrape_ongoing(1).results
-        elif query[2:].strip().lower() == "completed":
-            return self._scrape_completed(1).results
-        elif query[2:].strip().lower() == "movie":
-            return self._scrape_movies(1).results
-        elif query[2:].strip().lower() == "tvseries":
-            return self._scrape_tv_series(1).results
+        page = cast(int, self.options.get("page", 1))
+        search_mode = cast(str, self.options.get("mode", "title"))
+
+        if search_mode == "title":
+            return self._search(query, page).results
+        elif search_mode == "category":
+            if query.strip().lower() == "popular":
+                return self._scrape_popular(page).results
+            elif query.strip().lower() == "ongoing":
+                return self._scrape_ongoing(page).results
+            elif query.strip().lower() == "completed":
+                return self._scrape_completed(page).results
+            elif query.strip().lower() == "movie":
+                return self._scrape_movies(page).results
+            elif query.strip().lower() == "tv":
+                return self._scrape_tv_series(page).results
+            else:
+                raise Exception("Unsupported query")
         else:
-            raise Exception("Unsupported query")
+            raise Exception("Unsupported mode")
 
     def _search(self, query: str, page: int) -> PagedResult:
         url = f"{self.base_url}/DramaList/Search?q={query}"
@@ -77,7 +83,7 @@ class Kisskh(Provider):
 
     def _scrape_metadata(self, url: str, page: int) -> PagedResult:
         try:
-            response = self.http_client.get(url)
+            response = self.http_client.request("GET", url)
             response = response.raise_for_status()
 
             data = response.json()
@@ -111,14 +117,20 @@ class Kisskh(Provider):
             video_extractor = KK(self.http_client)
             videos = video_extractor.extract(
                 video_server.embed,
-                subs_url=video_server.extraData["subs_url"],
-                episode_id=video_server.extraData["episode_id"],
+                subs_url=video_server.extra_data["subs_url"],
+                episode_id=video_server.extra_data["episode_id"],
             )
             video = videos[0]
             subtitles = None
             if video.subtitles:
                 subtitles = list(map(lambda x: x.url, video.subtitles))
-            return Multi(video.url, metadata.title, episode, subtitles=subtitles)
+            return Multi(
+                video.url,
+                metadata.title,
+                episode,
+                subtitles=subtitles,
+                referrer=self.base_url,
+            )
         return None
 
     def _scrape_video_servers(self, episode_id: str) -> list[VideoServer]:
@@ -127,7 +139,9 @@ class Kisskh(Provider):
 
         return [
             VideoServer(
-                "kk", episode_url, {"subs_url": subs_url, "episode_id": episode_id}
+                "kk",
+                episode_url,
+                extra_data={"subs_url": subs_url, "episode_id": episode_id},
             )
         ]
 
@@ -136,7 +150,7 @@ class Kisskh(Provider):
     ) -> List[Episode]:
         try:
             extra_metadata_url = f"{self.base_url}/DramaList/Drama/{media_id}"
-            response = self.http_client.get(extra_metadata_url)
+            response = self.http_client.request("GET", extra_metadata_url)
             response.raise_for_status()
             extra_metadata = response.json()
 
