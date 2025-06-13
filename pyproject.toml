@@ -51,7 +51,7 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["consumet-mc*"]
+include = ["consumet_mc*"]
 
 
 

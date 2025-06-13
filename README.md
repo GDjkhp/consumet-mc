@@ -18,7 +18,7 @@ Here's how to install and add the plugin to mov-cli.
 pip install consumet-mc
 ```
 
-1. Then add the plugin to your mov-cli config.
+2. Then add the plugin to your mov-cli config.
 
 ```sh
 mov-cli -e

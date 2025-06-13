@@ -51,6 +51,7 @@ class StreamingServer(str, Enum):
     MEGAUP = "megaup"
     KK = "kk"
     MEGACLOUD = "megacloud"
+    KWIK = "kwik"
 
 
 class VideoExtractor(ABC):
