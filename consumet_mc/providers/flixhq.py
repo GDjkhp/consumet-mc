@@ -291,7 +291,7 @@ class Flixhq(Provider):
     def scrape(
         self, metadata: Metadata, episode: EpisodeSelector
     ) -> Optional[Multi | Single]:
-        alternative_server_name = self.options.get("server")
+        server_name = self.options.get("server")
         if metadata.type == MetadataType.MULTI:
             seasons = self._scrape_seasons(metadata.id)
             seasons.reverse()
@@ -308,15 +308,13 @@ class Flixhq(Provider):
 
         selected_video_server = None
 
-        if alternative_server_name:
+        if server_name:
             for s in video_servers:
-                if s.alternative_name == alternative_server_name:
+                if s.name == server_name:
                     selected_video_server = s
                     break
             if not selected_video_server:
-                raise Exception(
-                    f"No video server found with name {alternative_server_name}"
-                )
+                raise Exception(f"No video server found with name {server_name}")
         else:
             selected_video_server = video_servers[-1]
 
@@ -326,7 +324,7 @@ class Flixhq(Provider):
         ):
             video_extractor = Megacloud(self.http_client)
             videos = video_extractor.extract(
-                selected_video_server.embed, referer=self.base_url
+                selected_video_server.url, referer=self.base_url
             )
             if not videos:
                 return None
@@ -369,37 +367,33 @@ class Flixhq(Provider):
             for server_tag in server_tags:
                 if "movie" not in media_id:
                     data_id = str(cast(Tag, server_tag.select_one("a"))["data-id"])
-                    server_alternative_name = (
+                    server_name = (
                         str(cast(Tag, server_tag.select_one("a"))["title"])[6:]
                         .strip()
                         .lower()
                     )
                 else:
                     data_id = str(cast(Tag, server_tag.select_one("a"))["data-linkid"])
-                    server_alternative_name = (
+                    server_name = (
                         str(cast(Tag, server_tag.select_one("a"))["title"])
                         .strip()
                         .lower()
                     )
 
-                if server_alternative_name == "vidcloud":
-                    server_name = StreamingServer.VIDCLOUD
-                    server_embed = self._scrape_video_server_embed(data_id)
+                if server_name == StreamingServer.VIDCLOUD:
+                    server_url = self._scrape_video_server_data(data_id)
                     servers.append(
                         VideoServer(
                             server_name,
-                            server_embed,
-                            server_alternative_name,
+                            server_url,
                         )
                     )
-                elif server_alternative_name == "upcloud":
-                    server_name = StreamingServer.UPCLOUD
-                    server_embed = self._scrape_video_server_embed(data_id)
+                elif server_name == StreamingServer.UPCLOUD:
+                    server_url = self._scrape_video_server_data(data_id)
                     servers.append(
                         VideoServer(
                             server_name,
-                            server_embed,
-                            server_alternative_name,
+                            server_url,
                         )
                     )
 
@@ -408,7 +402,7 @@ class Flixhq(Provider):
         except Exception as e:
             raise e
 
-    def _scrape_video_server_embed(self, server_data_id: str):
+    def _scrape_video_server_data(self, server_data_id: str):
         try:
             url = f"{self.base_url}/ajax/episode/sources/{server_data_id}"
             response = self.http_client.request("GET", url)
@@ -439,7 +433,7 @@ class Flixhq(Provider):
             raise e
 
     def _scrape_episodes(
-        self, media_id: str, season_id: Optional[int] = None
+        self, media_id: str, season_id: Optional[str] = None
     ) -> List[Episode]:
         try:
             episodes: List[Episode] = []

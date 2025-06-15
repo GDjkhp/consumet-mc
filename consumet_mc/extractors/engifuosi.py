@@ -16,24 +16,23 @@ from consumet_mc.extractors.video_extractor import (
 )
 
 
-class Kwik(VideoExtractor):
+class Engifuosi(VideoExtractor):
     def __init__(self, http_client: HTTPClient) -> None:
         super().__init__(http_client)
 
     @property
     def server_name(self) -> StreamingServer:
-        return StreamingServer.KWIK
+        return StreamingServer.ENGIFUOSI
 
     def extract(self, url: str, **kwargs) -> list[Video]:
         videos = []
         try:
-            referer = str(kwargs["referer"])
-            headers = {"Referer": referer}
+            headers = {"Referer": kwargs["referer"]}
             response = self.http_client.request("GET", url, headers=headers)
             response.raise_for_status()
             decoded_source = unpack(response.text)
             if decoded_source:
-                source_url_regex = r"source='([^']*)'"
+                source_url_regex = r"file:\"([^\"]*)\""
                 match = re.search(source_url_regex, decoded_source)
                 if match:
                     source_url = match.group(1)

@@ -2,8 +2,6 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, cast
 
-from bs4.element import Tag
-
 from consumet_mc.extractors.kwik import Kwik
 from consumet_mc.extractors.video_extractor import StreamingServer
 from consumet_mc.models.episode import Episode
@@ -99,7 +97,7 @@ class AnimePahe(Provider):
         self, metadata: Metadata, episode: EpisodeSelector
     ) -> Optional[Multi | Single]:
         sub_or_dub = self.options.get("sub_or_dub", "any")
-        alternative_server_name = None
+        server_name = None
 
         episodes = self._scrape_episodes(metadata.id)
         episodes.reverse()
@@ -110,14 +108,14 @@ class AnimePahe(Provider):
         if not video_servers:
             return None
 
-        dub_video_servers = list(
+        dub_video_servers: List[VideoServer] = list(
             filter(
                 lambda x: x.extra_data.get("sub_or_dub") == "dub",
                 video_servers,
             )
         )
 
-        sub_video_servers = list(
+        sub_video_servers: List[VideoServer] = list(
             filter(
                 lambda x: x.extra_data.get("sub_or_dub") == "sub",
                 video_servers,
@@ -130,15 +128,13 @@ class AnimePahe(Provider):
             if not dub_video_servers:
                 raise Exception("No dub video server found")
 
-            if alternative_server_name:
+            if server_name:
                 for s in dub_video_servers:
-                    if s.alternative_name == alternative_server_name:
+                    if s.name == server_name:
                         selected_video_server = s
                         break
                 if not selected_video_server:
-                    raise Exception(
-                        f"No video server found with name {alternative_server_name}"
-                    )
+                    raise Exception(f"No video server found with name {server_name}")
             else:
                 selected_video_server = dub_video_servers[-1]
 
@@ -146,28 +142,24 @@ class AnimePahe(Provider):
             if not sub_video_servers:
                 raise Exception("No sub video server found")
 
-            if alternative_server_name:
+            if server_name:
                 for s in sub_video_servers:
-                    if s.alternative_name == alternative_server_name:
+                    if s.name == server_name:
                         selected_video_server = s
                         break
                 if not selected_video_server:
-                    raise Exception(
-                        f"No video server found with name {alternative_server_name}"
-                    )
+                    raise Exception(f"No video server found with name {server_name}")
             else:
                 selected_video_server = sub_video_servers[-1]
 
         elif sub_or_dub == "any":
-            if alternative_server_name:
+            if server_name:
                 for s in video_servers:
-                    if s.alternative_name == alternative_server_name:
+                    if s.name == server_name:
                         selected_video_server = s
                         break
                 if not selected_video_server:
-                    raise Exception(
-                        f"No video server found with name {alternative_server_name}"
-                    )
+                    raise Exception(f"No video server found with name {server_name}")
             else:
                 selected_video_server = video_servers[-1]
 
@@ -177,7 +169,7 @@ class AnimePahe(Provider):
         if selected_video_server.name == StreamingServer.KWIK:
             video_extractor = Kwik(self.http_client)
             videos = video_extractor.extract(
-                selected_video_server.embed, referer=self.base_url
+                selected_video_server.url, referer=self.base_url
             )
             if not videos:
                 return None
@@ -205,18 +197,15 @@ class AnimePahe(Provider):
             servers = []
 
             for server_tag in server_tags:
-                server_embed = cast(str, server_tag["data-src"])
+                server_url = cast(str, server_tag["data-src"])
                 server_audio = cast(str, server_tag["data-audio"])
                 server_quality = server_tag.text
 
                 server_name = StreamingServer.KWIK
-                server_alternative_name = server_name
-
                 servers.append(
                     VideoServer(
                         server_name,
-                        server_embed,
-                        server_alternative_name,
+                        server_url,
                         extra_data={
                             "sub_or_dub": "dub" if "eng" in server_audio else "sub",
                             "quality": server_quality,
@@ -230,7 +219,7 @@ class AnimePahe(Provider):
             raise e
 
     def _scrape_episodes(
-        self, media_id: str, season_id: Optional[int] = None
+        self, media_id: str, season_id: Optional[str] = None
     ) -> List[Episode]:
         try:
             current_page = 1

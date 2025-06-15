@@ -158,7 +158,7 @@ class HiAnime(Provider):
         self, metadata: Metadata, episode: EpisodeSelector
     ) -> Optional[Multi | Single]:
         sub_or_dub = self.options.get("sub_or_dub", "any")
-        alternative_server_name = self.options.get("server")
+        server_name = self.options.get("server")
 
         episodes = self._scrape_episodes(metadata.id)
         episodes.reverse()
@@ -189,15 +189,13 @@ class HiAnime(Provider):
             if not dub_video_servers:
                 raise Exception("No dub video server found")
 
-            if alternative_server_name:
+            if server_name:
                 for s in dub_video_servers:
-                    if s.alternative_name == alternative_server_name:
+                    if s.name == server_name:
                         selected_video_server = s
                         break
                 if not selected_video_server:
-                    raise Exception(
-                        f"No video server found with name {alternative_server_name}"
-                    )
+                    raise Exception(f"No video server found with name {server_name}")
             else:
                 selected_video_server = dub_video_servers[-1]
 
@@ -205,38 +203,34 @@ class HiAnime(Provider):
             if not sub_video_servers:
                 raise Exception("No sub video server found")
 
-            if alternative_server_name:
+            if server_name:
                 for s in sub_video_servers:
-                    if s.alternative_name == alternative_server_name:
+                    if s.name == server_name:
                         selected_video_server = s
                         break
                 if not selected_video_server:
-                    raise Exception(
-                        f"No video server found with name {alternative_server_name}"
-                    )
+                    raise Exception(f"No video server found with name {server_name}")
             else:
                 selected_video_server = sub_video_servers[-1]
 
         elif sub_or_dub == "any":
-            if alternative_server_name:
+            if server_name:
                 for s in video_servers:
-                    if s.alternative_name == alternative_server_name:
+                    if s.name == server_name:
                         selected_video_server = s
                         break
                 if not selected_video_server:
-                    raise Exception(
-                        f"No video server found with name {alternative_server_name}"
-                    )
+                    raise Exception(f"No video server found with name {server_name}")
             else:
                 selected_video_server = video_servers[-1]
 
         else:
             return None
 
-        if selected_video_server.name == StreamingServer.MEGACLOUD:
+        if StreamingServer.MEGACLOUD in selected_video_server.name:
             video_extractor = Megacloud(self.http_client)
             videos = video_extractor.extract(
-                selected_video_server.embed, referer=self.base_url
+                selected_video_server.url, referer=self.base_url
             )
             if not videos:
                 return None
@@ -264,40 +258,35 @@ class HiAnime(Provider):
             servers = []
 
             for server_tag in server_tags:
-                server_id = cast(str, server_tag["data-server-id"])
+                server_internal_name = str(
+                    cast(Tag, server_tag.select_one("a")).text
+                ).strip()
                 data_id = cast(str, server_tag["data-id"])
                 data_type = cast(str, server_tag["data-type"])
 
-                server_name = StreamingServer.MEGACLOUD
-                server_alternative_name = server_name
+                # * megacloud -> HD-1 HD-2 HD-3
 
-                if server_id == "4":
-                    server_alternative_name = "HD-1"
-                elif server_id == "1":
-                    server_alternative_name = "HD-2"
+                if "HD" in server_internal_name:
+                    server_url = self._scrape_video_server_data(data_id)
+                    server_number = server_internal_name.split("-")[-1]
+                    server_name = f"{StreamingServer.MEGACLOUD}-{server_number}"
 
-                elif server_id == "6":
-                    server_alternative_name = "HD-3"
-
-                server_embed = self._scrape_video_server_embed(data_id)
-
-                servers.append(
-                    VideoServer(
-                        server_name,
-                        server_embed,
-                        server_alternative_name,
-                        extra_data={
-                            "sub_or_dub": data_type,
-                        },
+                    servers.append(
+                        VideoServer(
+                            server_name,
+                            server_url,
+                            extra_data={
+                                "sub_or_dub": data_type,
+                            },
+                        )
                     )
-                )
 
             return servers
 
         except Exception as e:
             raise e
 
-    def _scrape_video_server_embed(self, server_data_id: str):
+    def _scrape_video_server_data(self, server_data_id: str):
         try:
             url = f"{self.base_url}/ajax/v2/episode/sources/?id={server_data_id}"
             response = self.http_client.request("GET", url)
@@ -310,7 +299,7 @@ class HiAnime(Provider):
             raise e
 
     def _scrape_episodes(
-        self, media_id: str, season_id: Optional[int] = None
+        self, media_id: str, season_id: Optional[str] = None
     ) -> List[Episode]:
         try:
             url = f"{self.base_url}/ajax/v2/episode/list/{media_id.split('-')[-1]}"

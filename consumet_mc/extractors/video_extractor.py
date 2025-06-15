@@ -52,6 +52,8 @@ class StreamingServer(str, Enum):
     KK = "kk"
     MEGACLOUD = "megacloud"
     KWIK = "kwik"
+    ENGIFUOSI = "engifuosi"
+    TUKIPASTI = "tukipasti"
 
 
 class VideoExtractor(ABC):

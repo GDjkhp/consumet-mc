@@ -49,7 +49,7 @@ class Provider(Scraper, ABC):
 
     @abstractmethod
     def _scrape_episodes(
-        self, media_id: str, season_id: Optional[int] = None
+        self, media_id: str, season_id: Optional[str] = None
     ) -> List[Episode]:
         """
         Where your scraping for episodes should be

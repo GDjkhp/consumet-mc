@@ -4,6 +4,7 @@ from re import error
 from typing import TYPE_CHECKING, cast
 
 from consumet_mc.extractors.kk import KK
+from consumet_mc.extractors.video_extractor import StreamingServer
 from consumet_mc.models.episode import Episode
 from consumet_mc.models.paged_result import PagedResult
 
@@ -113,10 +114,10 @@ class Kisskh(Provider):
         video_servers = self._scrape_video_servers(selected_episode.id)
         video_server = video_servers[0]
 
-        if video_server.name == "kk":
+        if video_server.name == StreamingServer.KK:
             video_extractor = KK(self.http_client)
             videos = video_extractor.extract(
-                video_server.embed,
+                video_server.url,
                 subs_url=video_server.extra_data["subs_url"],
                 episode_id=video_server.extra_data["episode_id"],
             )
@@ -148,7 +149,7 @@ class Kisskh(Provider):
         ]
 
     def _scrape_episodes(
-        self, media_id: str, season_id: Optional[int] = None
+        self, media_id: str, season_id: Optional[str] = None
     ) -> List[Episode]:
         try:
             extra_metadata_url = f"{self.base_url}/DramaList/Drama/{media_id}"

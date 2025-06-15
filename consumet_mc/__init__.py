@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from mov_cli.plugins import PluginHookData
 
-from .providers import Kisskh, HiAnime, Flixhq, AnimePahe
+from .providers import Kisskh, HiAnime, Flixhq, AnimePahe, Turkish
 
 plugin: PluginHookData = {
     "version": 1,
@@ -14,6 +14,7 @@ plugin: PluginHookData = {
         "animepahe": AnimePahe,
         "kisskh": Kisskh,
         "flixhq": Flixhq,
+        "turkish": Turkish,
         "DEFAULT": HiAnime,
     },
 }
