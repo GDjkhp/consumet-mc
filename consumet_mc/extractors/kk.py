@@ -3,18 +3,22 @@ from __future__ import annotations
 import base64
 from typing import TYPE_CHECKING
 
+from consumet_mc.models.source import Source
+from consumet_mc.models.subtitle import Subtitle
 from consumet_mc.utils import crypto
 
 if TYPE_CHECKING:
     from mov_cli.http_client import HTTPClient
 
-from .video_extractor import StreamingServer, Video, VideoExtractor, Subtitle
+from .video_extractor import VideoExtractor
+from consumet_mc.models.video import Video
+from consumet_mc.models.video_server import VideoServer
 from ctypes import c_int32
 
 
 class KK(VideoExtractor):
-    def __init__(self, http_client: HTTPClient) -> None:
-        super().__init__(http_client)
+    def __init__(self, http_client: HTTPClient, server: VideoServer) -> None:
+        super().__init__(http_client, server)
         self._subGuid = "VgV52sWhwvBSf8BsM3BRY9weWiiCbtGp"
         self._viGuid = "62f176f3bb1b5b8e70e39932ad34a0c7"
         self._appVer = "2.8.10"
@@ -23,12 +27,8 @@ class KK(VideoExtractor):
         self._aes_key = "4f6bdaa39E2F8CB07f5e722d9EDEF314"
         self._aes_iv = "01504af356e619cf2e42bba68C3F70F9"
 
-    @property
-    def server_name(self) -> StreamingServer:
-        return StreamingServer.KK
-
-    def extract(self, url: str, **kwargs) -> list[Video]:
-        episode_id = str(kwargs["episode_id"])
+    def extract(self) -> Source:
+        episode_id = str(self.server.extra_data["episode_id"])
         kk_vid_key = [
             "",
             episode_id,
@@ -89,8 +89,10 @@ class KK(VideoExtractor):
             .upper()
         )
 
-        vid_data_url = f"{url}?kkey={encrypted_vid_key}"
-        subs_data_url = f"{kwargs['subs_url']}?kkey={encrypted_subs_key}"
+        vid_data_url = f"{self.server.url}?kkey={encrypted_vid_key}"
+        subs_data_url = (
+            f"{self.server.extra_data['subs_url']}?kkey={encrypted_subs_key}"
+        )
 
         vid_data_response = self.http_client.request("GET", vid_data_url)
         subs_data_reponse = self.http_client.request("GET", subs_data_url)
@@ -99,16 +101,15 @@ class KK(VideoExtractor):
 
         vid_data = vid_data_response.json()
         video = Video(vid_data["Video"], False)
+        subtitles = []
 
         if subs_data_reponse.status_code == 200:
             subs_data = subs_data_reponse.json()
-            subs = []
             for sub_data in subs_data:
                 subtitle = Subtitle(sub_data["src"], sub_data["label"])
-                subs.append((subtitle))
-            video.subtitles = subs
+                subtitles.append((subtitle))
 
-        return [video]
+        return Source([video], subtitles)
 
     def _calculate_hash(self, token_str: str):
         word = 0

@@ -21,14 +21,13 @@ classifiers = [
     "Programming Language :: Python :: 3.12"
 ]
 dependencies = [
-    "requests",
     "pycryptodome",
     "importlib-metadata; python_version<'3.8'",
 
     "mov-cli>=4.0.3",
 
-    "wasmer>=1.1.0",
-    "wasmer_compiler_cranelift"
+    # "wasmer>=1.1.0",
+    # "wasmer_compiler_cranelift"
 ]
 
 dynamic = ["version"]

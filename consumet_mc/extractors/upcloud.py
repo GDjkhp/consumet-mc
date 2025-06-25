@@ -10,13 +10,12 @@ from consumet_mc.models.video import Video
 from consumet_mc.utils import crypto
 
 
-class Megacloud(VideoExtractor):
+class Upcloud(VideoExtractor):
     def extract(self) -> Source:
         videos = []
         subtitles = []
         try:
-            referer = str(self.server.extra_data["referer"])
-            headers = {"Referer": referer, "X-Requested-With": "XMLHttpRequest"}
+            headers = {"Referer": self.server.url, "X-Requested-With": "XMLHttpRequest"}
             base_url_regx = r"https://[a-zA-Z0-9.]*"
             match = re.match(base_url_regx, self.server.url)
             if not match:
@@ -25,9 +24,7 @@ class Megacloud(VideoExtractor):
             parts = self.server.url.split("/")
             last_part = parts[-1]
             id = last_part.split("?")[0]
-            url = f"{base_url}/embed-2/v2/e-1/getSources?id={id}"
-            if "embed-1" in self.server.url:
-                url = f"{base_url}/embed-1/v2/e-1/getSources?id={id}"
+            url = f"{base_url}/embed-1/v2/e-1/getSources?id={id}"
             response = self.http_client.request("GET", url, headers=headers)
             response.raise_for_status()
 
@@ -61,8 +58,8 @@ class Megacloud(VideoExtractor):
             response.raise_for_status()
             data = response.json()
             aes_key = None
-            if data["megacloud"]["success"]:
-                aes_key = data["megacloud"]["key"]
+            if data["rabbitstream"]["success"]:
+                aes_key = data["rabbitstream"]["key"]
             return aes_key
         except Exception as e:
             raise e

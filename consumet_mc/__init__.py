@@ -4,7 +4,17 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from mov_cli.plugins import PluginHookData
 
-from .providers import Kisskh, HiAnime, Flixhq, AnimePahe, Turkish
+from .providers import (
+    Kisskh,
+    HiAnime,
+    Flixhq,
+    AnimePahe,
+    Turkish,
+    ViewAsian,
+    DramaCool,
+    AllAnime,
+    AniWorld,
+)
 
 plugin: PluginHookData = {
     "version": 1,
@@ -12,7 +22,11 @@ plugin: PluginHookData = {
     "scrapers": {
         "hianime": HiAnime,
         "animepahe": AnimePahe,
+        "allanime": AllAnime,
+        "aniworld": AniWorld,
+        "dramacool": DramaCool,
         "kisskh": Kisskh,
+        "viewasian": ViewAsian,
         "flixhq": Flixhq,
         "turkish": Turkish,
         "DEFAULT": HiAnime,

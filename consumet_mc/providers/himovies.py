@@ -21,14 +21,12 @@ if TYPE_CHECKING:
 
     from mov_cli import Config
     from mov_cli.http_client import HTTPClient
-    from mov_cli.scraper import ScrapeEpisodesT, ScraperOptionsT
+    from mov_cli.scraper import ScraperOptionsT
 
 from mov_cli import Metadata, MetadataType
 
-__all__ = ("Flixhq",)
 
-
-class Flixhq(Provider):
+class HiMovies(Provider):
     def __init__(
         self,
         config: Config,
@@ -39,7 +37,7 @@ class Flixhq(Provider):
 
     @property
     def _base_url(self) -> str:
-        return "https://flixhq.to"
+        return "https://himovies.sx"
 
     def _search_title(self, query: str, page: int) -> PagedResult:
         url = f"{self._base_url}/search/{query}?page={page}"
@@ -290,11 +288,7 @@ class Flixhq(Provider):
             if media_id is None:
                 return []
 
-            if "movie" not in media_id:
-                url = f"{self._base_url}/ajax/v2/episode/servers/{episode_id}"
-            else:
-                url = f"{self._base_url}/ajax/movie/episodes/{episode_id}"
-
+            url = f"{self._base_url}/ajax/episode/servers/{episode_id}"
             response = self.http_client.request("GET", url)
             response.raise_for_status()
 
@@ -338,6 +332,8 @@ class Flixhq(Provider):
             return Vidcloud(self.http_client, server)
         elif server.name == "akcloud":
             return Vidzcloud(self.http_client, server)
+        elif server.name == "megacloud":
+            return Megacloud(self.http_client, server)
 
     def _scrape_video_server_data(self, server_data_id: str):
         try:
@@ -353,7 +349,7 @@ class Flixhq(Provider):
 
     def _scrape_seasons(self, media_id) -> List[Season]:
         try:
-            url = f"{self._base_url}/ajax/v2/tv/seasons/{media_id.split('-')[-1]}"
+            url = f"{self._base_url}/ajax/season/list/{media_id.split('-')[-1]}"
             response = self.http_client.request("GET", url)
             response.raise_for_status()
 
@@ -376,7 +372,7 @@ class Flixhq(Provider):
             episodes: List[Episode] = []
 
             if season_id:
-                url = f"{self._base_url}/ajax/v2/season/episodes/{season_id}"
+                url = f"{self._base_url}/ajax/season/episodes/{season_id}"
                 response = self.http_client.request("GET", url)
                 response.raise_for_status()
 

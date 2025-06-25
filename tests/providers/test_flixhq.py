@@ -47,6 +47,19 @@ def test_scrape_episodes(flixhq: Flixhq, vincenzo_metadata: Metadata):
     assert episodes.items()
 
 
-def test_scrape_media(flixhq: Flixhq, vincenzo_metadata):
+def test_scrape_media_with_vidcloud_server_selected(flixhq: Flixhq, vincenzo_metadata):
+    flixhq.options["server"] = "vidcloud"
+    media: Optional[Media] = flixhq.scrape(vincenzo_metadata, EpisodeSelector(1, 1))
+    assert media
+
+
+def test_scrape_media_with_upcloud_server_selected(flixhq: Flixhq, vincenzo_metadata):
+    flixhq.options["server"] = "upcloud"
+    media: Optional[Media] = flixhq.scrape(vincenzo_metadata, EpisodeSelector(1, 1))
+    assert media
+
+
+def test_scrape_media_with_akcloud_server_selected(flixhq: Flixhq, vincenzo_metadata):
+    flixhq.options["server"] = "akcloud"
     media: Optional[Media] = flixhq.scrape(vincenzo_metadata, EpisodeSelector(1, 1))
     assert media

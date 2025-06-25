@@ -6,13 +6,13 @@ from typing import TYPE_CHECKING, cast
 
 from bs4.element import Tag
 
-from consumet_mc.extractors.video_extractor import StreamingServer
+from consumet_mc.extractors.video_extractor import VideoExtractor
 from consumet_mc.extractors.tukipasti import Tukipasti
 from consumet_mc.extractors.engifuosi import Engifuosi
 from consumet_mc.models.episode import Episode
 from consumet_mc.models.paged_result import PagedResult
+from consumet_mc.models.video_server import VideoServer
 
-from ..models import VideoServer
 from .provider import Provider
 
 if TYPE_CHECKING:
@@ -20,10 +20,9 @@ if TYPE_CHECKING:
 
     from mov_cli import Config
     from mov_cli.http_client import HTTPClient
-    from mov_cli.scraper import ScrapeEpisodesT, ScraperOptionsT
-    from mov_cli.utils import EpisodeSelector
+    from mov_cli.scraper import ScraperOptionsT
 
-from mov_cli import Metadata, MetadataType, Multi, Single
+from mov_cli import Metadata, MetadataType
 
 __all__ = ("Turkish",)
 
@@ -35,26 +34,14 @@ class Turkish(Provider):
         http_client: HTTPClient,
         options: ScraperOptionsT | None = None,
     ) -> None:
-        self.base_url: str = "https://turkish123.ac"
-
         super().__init__(config, http_client, options)
 
-    def search(self, query: str, limit: Optional[int] = None) -> List[Metadata]:
-        limit = 1 if limit is None else limit
-        page = cast(int, self.options.get("page", 1))
-        search_mode = cast(str, self.options.get("mode", "title"))
+    @property
+    def _base_url(self) -> str:
+        return "https://turkish123.ac"
 
-        if search_mode == "title":
-            return self._search(query, page).results
-        elif search_mode == "category":
-            if query.strip().lower() == "series-list":
-                return self._scrape_series_list().results
-            raise Exception("Unsupported query")
-        else:
-            raise Exception("Unsupported mode")
-
-    def _search(self, query: str, page: int) -> PagedResult:
-        url = f"{self.base_url}/wp-admin/admin-ajax.php?s={query}&action=searchwp_live_search&swpengine=default&swpquery={query}"
+    def _search_title(self, query: str, page: int) -> PagedResult:
+        url = f"{self._base_url}/wp-admin/admin-ajax.php?s={query}&action=searchwp_live_search&swpengine=default&swpquery={query}"
         try:
             response = self.http_client.request("GET", url)
             response.raise_for_status()
@@ -67,7 +54,7 @@ class Turkish(Provider):
             for li_tag in li_tags:
                 id = (
                     str(cast(Tag, li_tag.select_one("a"))["href"])
-                    .replace(self.base_url, "")
+                    .replace(self._base_url, "")
                     .replace("/", "")
                 )
                 title = str(cast(Tag, li_tag.select_one(".ss-title")).text)
@@ -83,8 +70,14 @@ class Turkish(Provider):
         except Exception as e:
             raise e
 
+    def _search_category(self, query: str, page: int) -> PagedResult:
+        if query.strip().lower() == "series-list":
+            return self._scrape_series_list()
+
+        return PagedResult()
+
     def _scrape_series_list(self):
-        url = f"{self.base_url}/series-list/"
+        url = f"{self._base_url}/series-list/"
         try:
             response = self.http_client.request("GET", url)
             response.raise_for_status()
@@ -97,7 +90,7 @@ class Turkish(Provider):
             for ml_item_tag in ml_item_tags:
                 id = (
                     str(cast(Tag, ml_item_tag.select_one("a"))["href"])
-                    .replace(self.base_url, "")
+                    .replace(self._base_url, "")
                     .replace("/", "")
                 )
                 title = str(cast(Tag, ml_item_tag.select_one("a"))["oldtitle"])
@@ -109,58 +102,11 @@ class Turkish(Provider):
         except Exception as e:
             raise e
 
-    def scrape(
-        self, metadata: Metadata, episode: EpisodeSelector
-    ) -> Optional[Multi | Single]:
-        server_name = self.options.get("server")
-
-        episodes = self._scrape_episodes(metadata.id)
-        selected_episode = episodes[-episode.episode]
-        video_servers = self._scrape_video_servers(selected_episode.id, metadata.id)
-
-        selected_video_server = None
-
-        if server_name:
-            for s in video_servers:
-                if s.name == server_name:
-                    selected_video_server = s
-                    break
-            if not selected_video_server:
-                raise Exception(f"No video server found with name {server_name}")
-        else:
-            selected_video_server = video_servers[1]
-
-        video_extractor = None
-        if selected_video_server.name == StreamingServer.TUKIPASTI:
-            video_extractor = Tukipasti(self.http_client)
-        elif selected_video_server.name == StreamingServer.ENGIFUOSI:
-            video_extractor = Engifuosi(
-                self.http_client,
-            )
-
-        if video_extractor:
-            videos = video_extractor.extract(
-                selected_video_server.url, referer=self.base_url
-            )
-            if not videos:
-                return None
-            video = videos[0]
-
-            if metadata.type == MetadataType.MULTI:
-                return Multi(
-                    video.url,
-                    metadata.title,
-                    episode,
-                )
-            else:
-                return Single(video.url, metadata.title)
-        return None
-
     def _scrape_video_servers(
         self, episode_id: str, media_id: Optional[str] = None
     ) -> list[VideoServer]:
         try:
-            url = f"{self.base_url}/{episode_id}/"
+            url = f"{self._base_url}/{episode_id}/"
 
             response = self.http_client.request("GET", url)
             response.raise_for_status()
@@ -176,17 +122,16 @@ class Turkish(Provider):
 
             if tukipasti_match:
                 server_url = tukipasti_match.group(1)
-                server_name = StreamingServer.TUKIPASTI
+                server_name = "tukipasti"
                 servers.append(
                     VideoServer(
-                        server_name,
-                        server_url,
+                        server_name, server_url, extra_data={"referer": self._base_url}
                     )
                 )
 
             if engifuosi_match:
                 server_url = engifuosi_match.group(1)
-                server_name = StreamingServer.ENGIFUOSI
+                server_name = "engifuosi"
                 servers.append(
                     VideoServer(
                         server_name,
@@ -199,13 +144,19 @@ class Turkish(Provider):
         except Exception as e:
             raise e
 
+    def _get_video_extractor(self, server: VideoServer) -> Optional[VideoExtractor]:
+        if server.name == "tukipasti":
+            return Tukipasti(self.http_client, server)
+        elif server.name == "engifuosi":
+            return Engifuosi(self.http_client, server)
+
     def _scrape_episodes(
         self, media_id: str, season_id: Optional[str] = None
     ) -> List[Episode]:
         try:
             episodes: List[Episode] = []
 
-            url = f"{self.base_url}/{media_id}/"
+            url = f"{self._base_url}/{media_id}/"
             response = self.http_client.request("GET", url)
             response.raise_for_status()
 
@@ -221,14 +172,3 @@ class Turkish(Provider):
 
         except Exception as e:
             raise e
-
-    def scrape_episodes(self, metadata: Metadata) -> ScrapeEpisodesT:
-        if metadata.type == MetadataType.MULTI:
-            scrape_episodes = {}
-            episodes = self._scrape_episodes(metadata.id)
-            scrape_episodes[1] = len(episodes)
-
-            return scrape_episodes
-
-        else:
-            return {None: 1}

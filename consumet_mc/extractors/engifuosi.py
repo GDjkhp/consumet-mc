@@ -1,45 +1,29 @@
 from __future__ import annotations
 
 import re
-from typing import TYPE_CHECKING
-
-
-if TYPE_CHECKING:
-    from mov_cli.http_client import HTTPClient
-
-from mov_cli.http_client import HTTPClient
+from consumet_mc.models.source import Source
+from consumet_mc.models.video import Video
 from consumet_mc.utils.packer import unpack
-from consumet_mc.extractors.video_extractor import (
-    StreamingServer,
-    Video,
-    VideoExtractor,
-)
+from consumet_mc.extractors.video_extractor import VideoExtractor
 
 
 class Engifuosi(VideoExtractor):
-    def __init__(self, http_client: HTTPClient) -> None:
-        super().__init__(http_client)
-
-    @property
-    def server_name(self) -> StreamingServer:
-        return StreamingServer.ENGIFUOSI
-
-    def extract(self, url: str, **kwargs) -> list[Video]:
+    def extract(self) -> Source:
         videos = []
         try:
-            headers = {"Referer": kwargs["referer"]}
-            response = self.http_client.request("GET", url, headers=headers)
+            headers = {"Referer": self.server.extra_data["referer"]}
+            response = self.http_client.request("GET", self.server.url, headers=headers)
             response.raise_for_status()
             decoded_source = unpack(response.text)
             if decoded_source:
-                source_url_regex = r"file:\"([^\"]*)\""
-                match = re.search(source_url_regex, decoded_source)
+                video_url_regex = r"file:\"([^\"]*)\""
+                match = re.search(video_url_regex, decoded_source)
                 if match:
-                    source_url = match.group(1)
+                    video_url = match.group(1)
                     videos.append(
-                        Video(source_url, True if ".m3u8" in source_url else False)
+                        Video(video_url, True if ".m3u8" in video_url else False)
                     )
-            return videos
+            return Source(videos)
 
         except Exception as e:
             raise e

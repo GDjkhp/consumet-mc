@@ -32,16 +32,6 @@ def test_search_recent_movies(turkish: Turkish):
     assert metadatas
 
 
-# def test_search_trending_movies(flixhq: Flixhq):
-#     metadatas: List[Metadata] = flixhq.search("trending-movies")
-#     assert metadatas
-#
-#
-# def test_search_trending_tv_show(flixhq: Flixhq):
-#     metadatas: List[Metadata] = flixhq.search("trending-tv-shows")
-#     assert metadatas
-#
-#
 def test_scrape_episodes(turkish: Turkish, sen_cal_kapimi_metadata: Metadata):
     episodes: Dict = turkish.scrape_episodes(sen_cal_kapimi_metadata)
     assert episodes.items()
