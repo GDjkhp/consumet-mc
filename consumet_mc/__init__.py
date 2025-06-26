@@ -14,6 +14,7 @@ from .providers import (
     DramaCool,
     AllAnime,
     AniWorld,
+    HiMovies,
 )
 
 plugin: PluginHookData = {
@@ -28,6 +29,7 @@ plugin: PluginHookData = {
         "kisskh": Kisskh,
         "viewasian": ViewAsian,
         "flixhq": Flixhq,
+        "himovies": HiMovies,
         "turkish": Turkish,
         "DEFAULT": HiAnime,
     },

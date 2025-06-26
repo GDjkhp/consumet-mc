@@ -163,13 +163,15 @@ class HiAnime(Provider):
             sub_or_dub = self.options.get("sub_or_dub", "sub")
 
             for server_tag in server_tags:
-                server_name = str(cast(Tag, server_tag.select_one("a")).text).strip()
+                server_name = (
+                    str(cast(Tag, server_tag.select_one("a")).text).strip().lower()
+                )
                 data_id = cast(str, server_tag["data-id"])
                 data_type = cast(str, server_tag["data-type"])
 
                 # * megacloud -> HD-1 HD-2 HD-3
 
-                if "HD" in server_name:
+                if "hd" in server_name:
                     server_url = self._scrape_video_server_data(data_id)
 
                     if data_type == sub_or_dub:

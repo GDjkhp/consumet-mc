@@ -40,6 +40,7 @@ class HiMovies(Provider):
         return "https://himovies.sx"
 
     def _search_title(self, query: str, page: int) -> PagedResult:
+        query = query.replace(" ", "-")
         url = f"{self._base_url}/search/{query}?page={page}"
         try:
             response = self.http_client.request("GET", url)
@@ -288,7 +289,10 @@ class HiMovies(Provider):
             if media_id is None:
                 return []
 
-            url = f"{self._base_url}/ajax/episode/servers/{episode_id}"
+            if "movie" not in media_id:
+                url = f"{self._base_url}/ajax/episode/servers/{episode_id}"
+            else:
+                url = f"{self._base_url}/ajax/episode/list/{episode_id}"
             response = self.http_client.request("GET", url)
             response.raise_for_status()
 
@@ -298,21 +302,12 @@ class HiMovies(Provider):
             servers = []
 
             for server_tag in server_tags:
-                if "movie" not in media_id:
-                    data_id = str(cast(Tag, server_tag.select_one("a"))["data-id"])
-                    server_name = (
-                        str(cast(Tag, server_tag.select_one("a"))["title"])[6:]
-                        .strip()
-                        .lower()
-                    )
-                else:
-                    data_id = str(cast(Tag, server_tag.select_one("a"))["data-linkid"])
-                    server_name = (
-                        str(cast(Tag, server_tag.select_one("a"))["title"])
-                        .strip()
-                        .lower()
-                    )
-
+                data_id = str(cast(Tag, server_tag.select_one("a"))["data-id"])
+                server_name = (
+                    str(cast(Tag, server_tag.select_one("a"))["title"])[6:]
+                    .strip()
+                    .lower()
+                )
                 server_url = self._scrape_video_server_data(data_id)
                 servers.append(
                     VideoServer(
@@ -332,8 +327,8 @@ class HiMovies(Provider):
             return Vidcloud(self.http_client, server)
         elif server.name == "akcloud":
             return Vidzcloud(self.http_client, server)
-        elif server.name == "megacloud":
-            return Megacloud(self.http_client, server)
+        # elif server.name == "megacloud":
+        #     return Megacloud(self.http_client, server)
 
     def _scrape_video_server_data(self, server_data_id: str):
         try:
@@ -393,7 +388,9 @@ class HiMovies(Provider):
 
                 soup = self.soup(response.text)
 
-                episode_id = str(cast(Tag, soup.select_one(".watch_block"))["data-id"])
+                episode_id = str(
+                    cast(Tag, soup.select_one(".detail_page-watch"))["data-id"]
+                )
 
                 episodes.append(Episode(episode_id, 1, 1))
 

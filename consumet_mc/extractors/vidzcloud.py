@@ -31,11 +31,26 @@ class Vidzcloud(VideoExtractor):
             data = response.json()
 
             sources_encrypted = data["sources"]
-            aes_key = self._get_aes_key()
-            if not aes_key:
-                return Source([])
-            sources_json_str = self._decrypte_sources(sources_encrypted, aes_key)
-            sources = json.loads(sources_json_str)
+            sources = None
+            aes_keys = []
+
+            aes_keys.append(self._get_aes_key1())
+            aes_keys.append(self._get_aes_key2())
+
+            for aes_key in aes_keys:
+                try:
+                    if aes_key:
+                        sources_json_str = self._decrypte_sources(
+                            sources_encrypted, aes_key
+                        )
+                        sources = json.loads(sources_json_str)
+                        break
+                except Exception:
+                    pass
+
+            if not sources:
+                raise Exception(f"Failed to decrypted source url:{sources_encrypted}")
+
             tracks = data["tracks"]
             video_url = sources[0]["file"]
             video_type = sources[0]["type"]
@@ -51,18 +66,28 @@ class Vidzcloud(VideoExtractor):
         except Exception as e:
             raise e
 
-    def _get_aes_key(self):
-        try:
-            url = "https://keys.hs.vc/"
-            response = self.http_client.request("GET", url)
-            response.raise_for_status()
+    def _get_aes_key1(self):
+        url = "https://keys.hs.vc/"
+        response = self.http_client.request("GET", url)
+        response.raise_for_status()
+
+        aes_key = None
+        if response.status_code == 200:
             data = response.json()
-            aes_key = None
             if data["rabbitstream"]["success"]:
                 aes_key = data["rabbitstream"]["key"]
-            return aes_key
-        except Exception as e:
-            raise e
+        return aes_key
+
+    def _get_aes_key2(self):
+        url = "https://key.hi-anime.site/"
+        response = self.http_client.request("GET", url)
+        response.raise_for_status()
+
+        aes_key = None
+        if response.status_code == 200:
+            data = response.json()
+            aes_key = data["rabbit"]
+        return aes_key
 
     def _decrypte_sources(self, sources: str, key: str):
         try:

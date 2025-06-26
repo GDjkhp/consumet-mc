@@ -32,21 +32,82 @@ consumet = "consumet-mc"
 ## Usage
 
 ```sh
-Search for tv, movies, or anime by title, category, or genre
+Search for TV shows, movies, or anime by title, category, or genre from  provider.
 
 Usage:
-  mov-cli -s consumet <query> -- [Options]
+  mov-cli -s consumet.<provider> <query> 
+          [--mode <mode>]
+          [--page <number>]
+          [--sub-or-dub <type>]
+          [--server <name>]
 
-arguments:
-  <query>         title, category, or genre
+Arguments:
+  <provider>          The content provider to use. Supported providers listed below
+  <query>             The search title, category, or genre depending on --mode.
 
 Options:
-    --mode <mode>   Search mode: title (default), category, or genre
-    --server        Video server to use for a specefic episode or movie
-    --page          Search result page to grab (default 1)
-    --sub_or_dub    **Anime Only** Episode type: any (default),sub, or dub
+  --mode <mode>       Search mode (default: title)
+                        - title     Search by name
+                        - category  Use one of the categories listed below (per provider)
+                        - genre     Use one of the genres listed below (per provider)
+  --page <number>     Result page to fetch (default: 1)
+  --sub-or-dub <type> Anime episode type (anime only):
+                        - sub (default)
+                        - dub
+  --server <name>     Server to use for playback (see provider-specific servers below)
 
+──────────────────────────────────────────────────────────────
+Provider: allanime
+  Categories: -
+  Genres:     -
+  Servers:    yt-mp4, mp4, fm-hls
+
+Provider: animepahe
+  Categories: latest-releases
+  Genres:     -
+  Servers:    kwik
+
+Provider: aniworld
+  Categories: popular-anime
+  Genres:     -
+  Servers:    filemoon, voe
+
+Provider: dramacool
+  Categories: recent-drama, recent-movies
+  Genres:     -
+  Servers:    streamwish, standard server
+
+Provider: flixhq
+  Categories: recent-movies, trending-movies, trending-tv-shows
+  Genres:     -
+  Servers:    upcloud, vidcloud, akcloud
+
+Provider: hianime
+  Categories: most-popular, top-airing, most-favorite, latest-completed
+              recently-updated, recently-added, subbed-anime,dubbed-anime
+  Genres:     -
+  Servers:    hd-1, hd-2, hd-3
+
+Provider: himovies
+  Categories: recent-movies, trending-movies, trending-tv-shows
+  Genres:     -
+  Servers:    upcloud, vidcloud, akcloud
+
+Provider: kisskh
+  Categories: popular, ongoing, completed, movie, tv
+  Genres:     -
+  Servers:    kk
+
+Provider: turkish
+  Categories: series-list
+  Genres:     -
+  Servers:    tukipasti, engifuosi
+
+Provider: viewasian
+  Categories: most-popular-drama, recent-drama
+  Genres:     -
+  Servers:    vidmoly
 
 Examples:
-  mov-cli -s consumet "tv" --  --mode category --sub_or_dub dub --server HD-1
+  mov-cli -s consumet.hianime "One Piece" -- --mode title --server hd-1 --page 1
 ```

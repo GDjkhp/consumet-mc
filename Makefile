@@ -14,3 +14,6 @@ install-editable:
 
 test:
 	ruff check .
+
+clean:
+	rm -rf dist

@@ -42,6 +42,7 @@ class Flixhq(Provider):
         return "https://flixhq.to"
 
     def _search_title(self, query: str, page: int) -> PagedResult:
+        query = query.replace(" ", "-")
         url = f"{self._base_url}/search/{query}?page={page}"
         try:
             response = self.http_client.request("GET", url)
@@ -293,7 +294,7 @@ class Flixhq(Provider):
             if "movie" not in media_id:
                 url = f"{self._base_url}/ajax/v2/episode/servers/{episode_id}"
             else:
-                url = f"{self._base_url}/ajax/movie/episodes/{episode_id}"
+                url = f"{self._base_url}/ajax/episode/list/{episode_id}"
 
             response = self.http_client.request("GET", url)
             response.raise_for_status()
