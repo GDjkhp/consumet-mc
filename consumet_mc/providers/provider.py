@@ -133,23 +133,30 @@ class Provider(Scraper, ABC):
         selected_episode = episodes[-episode.episode]
 
         video_servers = self._scrape_video_servers(selected_episode.id, metadata.id)
-        if not video_servers:
-            return
 
-        selected_video_server = None
+        selected_server = None
+        video_extractor = None
+
         if server_name:
             for s in video_servers:
-                if s.name == str(server_name).lower():
-                    selected_video_server = s
+                server_name = str(server_name).lower()
+                if s.name == server_name:
+                    selected_server = s
                     break
-            if not selected_video_server:
-                raise Exception(f"No video server found with name {server_name}")
-        else:
-            selected_video_server = video_servers[0]
 
-        video_extractor = self._get_video_extractor(selected_video_server)
-        if not video_extractor:
-            return
+            if not selected_server:
+                raise Exception(f"No video server found with name {server_name}")
+
+            video_extractor = self._get_video_extractor(selected_server)
+            if not video_extractor:
+                raise Exception(f"video server {server_name} is Unsupported")
+        else:
+            for s in video_servers:
+                video_extractor = self._get_video_extractor(s)
+                if video_extractor:
+                    break
+            if not video_extractor:
+                raise Exception("no supported video server found")
 
         source = video_extractor.extract()
         if not source.videos:

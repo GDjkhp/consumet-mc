@@ -39,8 +39,8 @@ dev = [
 ]
 
 [project.urls]
-GitHub = "https://github.com/yuri3iDev/consumet-mc"
-BugTracker = "https://github.com/yuri3iDev/consumet-mc/issues"
+GitHub = "https://github.com/yur3iDev/consumet-mc"
+BugTracker = "https://github.com/yur3iDev/consumet-mc/issues"
 
 [tool.setuptools.dynamic]
 version = { attr = "consumet_mc.__version__" }

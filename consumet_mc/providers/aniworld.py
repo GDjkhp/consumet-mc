@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import TYPE_CHECKING, cast
 
 from bs4 import Tag
@@ -52,8 +53,9 @@ class AniWorld(Provider):
             data = response.json()
             paged_result = PagedResult()
             for i in data:
+                title = re.sub(r"<.*?>", "", i["title"])
                 paged_result.results.append(
-                    Metadata(i["link"], i["title"], MetadataType.MULTI)
+                    Metadata(i["link"], title, MetadataType.MULTI)
                 )
 
             return paged_result
@@ -76,6 +78,7 @@ class AniWorld(Provider):
             paged_result = PagedResult()
             for tag in div_tags:
                 title = str(cast(Tag, tag.select_one("a"))["title"])
+                title = re.sub(r"<.*?>", "", title)
                 id = str(cast(Tag, tag.select_one("a"))["href"])
                 img_url = str(cast(Tag, tag.select_one("a > img"))["data-src"])
                 img_url = f"{self._base_url}{img_url}"
