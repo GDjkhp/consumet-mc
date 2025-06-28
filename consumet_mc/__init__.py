@@ -15,6 +15,7 @@ from .providers import (
     AllAnime,
     AniWorld,
     HiMovies,
+    Sflix,
 )
 
 plugin: PluginHookData = {
@@ -30,9 +31,10 @@ plugin: PluginHookData = {
         "viewasian": ViewAsian,
         "flixhq": Flixhq,
         "himovies": HiMovies,
+        "sflix": Sflix,
         "turkish": Turkish,
         "DEFAULT": HiAnime,
     },
 }
 
-__version__ = "1.0.1"
+__version__ = "1.1.0"

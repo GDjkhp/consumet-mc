@@ -3,9 +3,6 @@ from __future__ import annotations
 import base64
 import json
 import re
-
-import requests
-
 from consumet_mc.models.source import Source
 from consumet_mc.models.subtitle import Subtitle
 from consumet_mc.extractors.video_extractor import VideoExtractor
@@ -26,7 +23,7 @@ class Voe(VideoExtractor):
             if not match:
                 return Source([])
             page_url = match.group(1)
-            response = requests.get(page_url)
+            response = self.http_client.request("GET", page_url)
             response.raise_for_status()
             encoded_str_regex = (
                 r"<script type=\"application/json\">.*\[(.*?)\]</script>"

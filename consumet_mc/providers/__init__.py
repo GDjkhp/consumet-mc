@@ -12,6 +12,7 @@ from .dramacool import DramaCool
 from .allanime import AllAnime
 from .himovies import HiMovies
 from .aniworld import AniWorld
+from .sflix import Sflix
 
 
 __all__ = (
@@ -26,4 +27,5 @@ __all__ = (
     "AllAnime",
     "HiMovies",
     "AniWorld",
+    "Sflix",
 )

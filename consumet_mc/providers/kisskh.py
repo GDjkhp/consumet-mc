@@ -134,7 +134,7 @@ class Kisskh(Provider):
 
             episodes: List[Episode] = []
 
-            for idx, ep in enumerate(extra_metadata["episodes"]):
+            for idx, ep in enumerate(reversed(extra_metadata["episodes"])):
                 episodes.append(Episode(ep["id"], 1, idx))
 
             return episodes
