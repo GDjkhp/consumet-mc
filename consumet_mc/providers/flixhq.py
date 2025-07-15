@@ -4,11 +4,8 @@ from typing import TYPE_CHECKING, cast
 
 from bs4.element import Tag
 
-from consumet_mc.extractors.megacloud.megacloud import Megacloud
-from consumet_mc.extractors.upcloud import Upcloud
-from consumet_mc.extractors.vidcloud import Vidcloud
+from consumet_mc.extractors.rabbitstream import RabbitStream
 from consumet_mc.extractors.video_extractor import VideoExtractor
-from consumet_mc.extractors.vidzcloud import Vidzcloud
 from consumet_mc.models.episode import Episode
 from consumet_mc.models.paged_result import PagedResult
 from consumet_mc.models.season import Season
@@ -334,11 +331,11 @@ class Flixhq(Provider):
 
     def _get_video_extractor(self, server: VideoServer) -> Optional[VideoExtractor]:
         if server.name == "upcloud":
-            return Upcloud(self.http_client, server)
+            return RabbitStream(self.http_client, server)
         elif server.name == "vidcloud":
-            return Vidcloud(self.http_client, server)
+            return RabbitStream(self.http_client, server)
         elif server.name == "akcloud":
-            return Vidzcloud(self.http_client, server)
+            return RabbitStream(self.http_client, server)
 
     def _scrape_video_server_data(self, server_data_id: str):
         try:

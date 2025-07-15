@@ -37,7 +37,7 @@ class DramaCool(Provider):
 
     @property
     def _base_url(self):
-        return "https://dramacoolz.lv"
+        return "https://dramacoolt.lv"
 
     def _search_title(self, query: str, page: int) -> PagedResult:
         url = f"{self._base_url}/page/{page}/?s={query}"

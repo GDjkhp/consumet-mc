@@ -56,13 +56,11 @@ class Megacloud(VideoExtractor):
 
     def _get_aes_key(self):
         try:
-            url = "https://keys.hs.vc/"
+            url = "https://key.hi-anime.site/"
             response = self.http_client.request("GET", url)
             response.raise_for_status()
             data = response.json()
-            aes_key = None
-            if data["megacloud"]["success"]:
-                aes_key = data["megacloud"]["key"]
+            aes_key = data["key"]
             return aes_key
         except Exception as e:
             raise e
