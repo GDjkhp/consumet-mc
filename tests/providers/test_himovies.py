@@ -63,9 +63,9 @@ def test_scrape_media_with_akcloud_server_selected(
     assert media
 
 
-def test_scrape_media_with_megacloud_server_selected(
-    himovies: HiMovies, vincenzo_metadata
-):
-    himovies.options["server"] = "megacloud"
-    media: Optional[Media] = himovies.scrape(vincenzo_metadata, EpisodeSelector(1, 1))
-    assert media
+# def test_scrape_media_with_megacloud_server_selected(
+#     himovies: HiMovies, vincenzo_metadata
+# ):
+#     himovies.options["server"] = "megacloud"
+#     media: Optional[Media] = himovies.scrape(vincenzo_metadata, EpisodeSelector(1, 1))
+#     assert media

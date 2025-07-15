@@ -85,7 +85,7 @@ class Kisskh(Provider):
     def _scrape_metadata(self, url: str, page: int) -> PagedResult:
         try:
             response = self.http_client.request("GET", url)
-            response = response.raise_for_status()
+            response.raise_for_status()
 
             data = response.json()
             paged_result = PagedResult(current_page=page)
