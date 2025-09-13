@@ -33,7 +33,7 @@ class AnimePahe(Provider):
 
     @property
     def _base_url(self):
-        return "https://animepahe.ru"
+        return "https://animepahe.si"
 
     def _search_title(self, query: str, page: int) -> PagedResult:
         try:
